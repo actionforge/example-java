@@ -1,0 +1,62 @@
+entry: gh-start
+nodes:
+  - id: gh-start
+    type: core/gh-start@v1
+    position:
+      x: -150
+      y: 20
+  - id: checkout
+    type: github.com/actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+    position:
+      x: 270
+      y: 660
+  - id: run
+    type: core/run@v1
+    position:
+      x: 810
+      y: 540
+    inputs:
+      script: |
+        javac HelloWorld.java
+        jar cfe HelloWorld.jar HelloWorld HelloWorld.class
+        java -jar HelloWorld.jar
+  - id: upload
+    type: github.com/actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+    position:
+      x: 1350
+      y: 540
+    inputs:
+      name: HelloWorld
+      path: HelloWorld.jar
+connections: []
+executions:
+  - src:
+      node: gh-start
+      port: exec-on_push
+    dst:
+      node: checkout
+      port: exec
+  - src:
+      node: gh-start
+      port: exec-on_pull_request
+    dst:
+      node: checkout
+      port: exec
+  - src:
+      node: gh-start
+      port: exec-on_workflow_dispatch
+    dst:
+      node: checkout
+      port: exec
+  - src:
+      node: checkout
+      port: exec-success
+    dst:
+      node: run
+      port: exec
+  - src:
+      node: run
+      port: exec-success
+    dst:
+      node: upload
+      port: exec
